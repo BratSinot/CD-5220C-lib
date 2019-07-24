@@ -27,9 +27,24 @@ using namespace std;
 int main(void) {
 	cp866 test(string("АБВГД"));
 
-	//printf("0x%x\n", (uint8_t)test.get()[0]);
 	for ( auto ch : test ) {
 		printf("0x%X ", (uint8_t)ch);
+	}
+	putchar('\n');
+	for ( size_t i = 0; i < test.length(); i++ ) {
+		printf("0x%X ", (uint8_t)test[i]);
+	}
+	putchar('\n');
+	putchar('\n');
+
+	test.replace("ЕЖЗИЙ");
+
+	for ( auto ch : test ) {
+		printf("0x%X ", (uint8_t)ch);
+	}
+	putchar('\n');
+	for ( size_t i = 0; i < test.length(); i++ ) {
+		printf("0x%X ", (uint8_t)test[i]);
 	}
 
 	return 0;

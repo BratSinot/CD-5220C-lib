@@ -36,45 +36,38 @@ class cp866 {
 		char* data;
 		size_t len;
 
+		void init(const char* str);
+
 	public:
+		cp866();
 		cp866(std::string str);
 		cp866(const char* str);
 		~cp866();
 
-		size_t length(void) { return len; };
-		char* get(void) { return data; };
+		size_t length(void);
+		char* get(void);
+		void replace(std::string str);
+		void replace(const char* str);
+
+		char operator[](size_t n);
 
 		class iterator : public std::iterator<std::input_iterator_tag, char*> {
 			char* ch_ptr;
 
 			public:
-				iterator(char* ch) : ch_ptr(ch) {}
-				iterator& operator++() {
-					++ch_ptr;
-					return *this;
-				}
-				iterator operator++(int) {
-					iterator tmp(*this);
-					operator++();
-					return tmp;
-				}
-				bool operator==(const iterator& rhs) {
-					return ch_ptr == rhs.ch_ptr;
-				}
-				bool operator!=(const iterator& rhs) {
-					return ch_ptr != rhs.ch_ptr;
-				}
-				char& operator*() {
-					return *ch_ptr;
-				}
+				iterator(char* ch);
+
+				iterator& operator++();
+				iterator operator++(int);
+
+				bool operator==(const iterator& rhs);
+				bool operator!=(const iterator& rhs);
+
+				char& operator*();
 		};
 
-		iterator begin() {
-			return iterator(data);
-		}
-		iterator end() {
-			return iterator(data + len);
-		}
+		iterator begin();
+		iterator end();
 };
 
 #endif

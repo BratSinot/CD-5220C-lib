@@ -20,7 +20,7 @@
 
 #include "CP866enc.hpp"
 
-cp866::cp866(const char* str) {
+void cp866::init(const char* str) {
 	iconv_t conv = iconv_open("CP866", "UTF-8");
 
 	if ( conv == (iconv_t)(-1) ) {
@@ -33,11 +33,13 @@ cp866::cp866(const char* str) {
 		}
 	}
 
+	// libiconv change len arguments, so copy them
 	size_t inbytesleft = strlen(str);
 	size_t outbytesleft = inbytesleft;
 
 	std::shared_ptr<char[]> buff(new char[inbytesleft]);
 
+	// libiconv change pointer arguments as well, so copy them.
 	const char* inbuf = str;
 	char* outbuf = buff.get();
 
@@ -58,6 +60,7 @@ cp866::cp866(const char* str) {
 				throw std::runtime_error("Unknown iconv() error.");
 		}
 	}
+
 	iconv_close(conv);
 
 	len = strlen(buff.get());
@@ -68,8 +71,81 @@ cp866::cp866(const char* str) {
 	}
 }
 
+cp866::cp866() {
+	data = nullptr;
+	len = 0;
+}
+
 cp866::cp866(std::string str) : cp866(str.c_str()) {};
+
+cp866::cp866(const char* str) {
+	init(str);
+}
 
 cp866::~cp866() {
 	delete[] data;
+}
+
+size_t cp866::length(void) {
+	return len;
+}
+
+char* cp866::get(void) {
+	return data;
+}
+
+void cp866::replace(std::string str) {
+	replace(str.c_str());
+}
+
+void cp866::replace(const char* str) {
+	if ( data != nullptr ) {
+		delete[] data;
+		len = 0;
+	}
+
+	init(str);
+}
+
+char cp866::operator[](size_t n) {
+	if ( n >= len ) {
+		throw std::out_of_range("Out of Range.");
+	}
+
+	return data[n];
+}
+
+cp866::iterator::iterator(char* ch) : ch_ptr(ch) {};
+
+cp866::iterator& cp866::iterator::operator++() {
+	++ch_ptr;
+
+	return *this;
+}
+
+cp866::iterator cp866::iterator::operator++(int) {
+	iterator tmp(*this);
+	operator++();
+
+	return tmp;
+}
+
+bool cp866::iterator::operator==(const cp866::iterator& rhs) {
+	return ch_ptr == rhs.ch_ptr;
+}
+
+bool cp866::iterator::operator!=(const cp866::iterator& rhs) {
+	return ch_ptr != rhs.ch_ptr;
+}
+
+char& cp866::iterator::operator*() {
+	return *ch_ptr;
+}
+
+cp866::iterator cp866::begin() {
+	return iterator(data);
+}
+
+cp866::iterator cp866::end() {
+	return iterator(data + len);
 }
