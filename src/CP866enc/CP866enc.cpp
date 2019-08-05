@@ -37,13 +37,11 @@ void cp866::init(const char* str) {
 	size_t inbytesleft = strlen(str);
 	size_t outbytesleft = inbytesleft;
 
-	//std::shared_ptr<char[]> buff(new char[inbytesleft]);
-	char* buff = new char[inbytesleft];
+	std::shared_ptr<char[]> buff(new char[inbytesleft]);
 
 	// libiconv change pointer arguments as well, so copy them.
 	const char* inbuf = str;
-	//char* outbuf = buff.get();
-	char* outbuf = buff;
+	char* outbuf = buff.get();
 
 	size_t err = iconv(conv, (char**)&inbuf, &inbytesleft, &outbuf, &outbytesleft);
 
@@ -60,12 +58,10 @@ void cp866::init(const char* str) {
 		}
 	}
 
-	len = strlen(buff);
+	len = strlen(buff.get());
 
 	data = std::make_unique<char[]>(len);
-	std::copy(buff, buff + len, data.get());
-
-	delete[] buff;
+	std::copy(buff.get(), buff.get() + len, data.get());
 
 	iconv_close(conv);
 }
