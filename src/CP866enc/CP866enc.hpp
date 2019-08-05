@@ -27,23 +27,29 @@ extern "C" {
 
 #include <cstring>
 
+#include <algorithm>
 #include <iterator>
 #include <memory>
 #include <stdexcept>
 
 class cp866 {
 	private:
-		char* data;
-		size_t len;
+		std::unique_ptr<char[]> data;
+		size_t len = 0;
+
+		std::unique_ptr<char[]> fromcode;
 
 		void init(const char* str);
 
 	public:
-		cp866();
-		cp866(std::string str);
-		cp866(const char* str);
-		~cp866();
+		cp866() {};
+		cp866(const char* codeset);
+		cp866(std::string codeset);
+		cp866(std::string str, std::string codeset);
+		cp866(const char* str, const char* codeset);
 
+		void setcode(std::string codeset);
+		void setcode(const char* codeset);
 		size_t length(void);
 		char* get(void);
 		void replace(std::string str);

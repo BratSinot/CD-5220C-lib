@@ -25,7 +25,7 @@
 using namespace std;
 
 int main(void) {
-	cp866 test(string("АБВГД"));
+	cp866 test(string("АБВГД"), "UTF-8");
 
 	for ( auto ch : test ) {
 		printf("0x%X ", (uint8_t)ch);
@@ -45,6 +45,16 @@ int main(void) {
 	putchar('\n');
 	for ( size_t i = 0; i < test.length(); i++ ) {
 		printf("0x%X ", (uint8_t)test[i]);
+	}
+	putchar('\n');
+	putchar('\n');
+
+	cp866 test2;
+	test2.setcode("UTF-8");
+	test2.replace("АБВГД");
+	printf("%u\n\n", test2.length());
+	for ( auto ch : test2 ) {
+		printf("0x%X ", (uint8_t)ch);
 	}
 
 	return 0;

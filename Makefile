@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-std=c++17 -Og -mtune=native -march=native -flto -pipe -fPIC
+CXXFLAGS=-std=c++17 -g -Og -mtune=native -march=native -flto -pipe -fPIC
 LDFLAGS=
 
 all: main CP866enc

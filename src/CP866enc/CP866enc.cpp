@@ -21,12 +21,12 @@
 #include "CP866enc.hpp"
 
 void cp866::init(const char* str) {
-	iconv_t conv = iconv_open("CP866", "UTF-8");
+	iconv_t conv = iconv_open("CP866", fromcode.get());
 
 	if ( conv == (iconv_t)(-1) ) {
 		switch ( errno ) {
 			case EINVAL:
-				throw std::runtime_error("The conversion from UTF-8 to CP866 is not supported by the implementation.");
+				throw std::runtime_error(std::string("The conversion from ") + std::string(fromcode.get()) + std::string(" to CP866 is not supported by the implementation."));
 				break;
 			default:
 				throw std::runtime_error("Unknown iconv_open() error.");
@@ -37,11 +37,13 @@ void cp866::init(const char* str) {
 	size_t inbytesleft = strlen(str);
 	size_t outbytesleft = inbytesleft;
 
-	std::shared_ptr<char[]> buff(new char[inbytesleft]);
+	//std::shared_ptr<char[]> buff(new char[inbytesleft]);
+	char* buff = new char[inbytesleft];
 
 	// libiconv change pointer arguments as well, so copy them.
 	const char* inbuf = str;
-	char* outbuf = buff.get();
+	//char* outbuf = buff.get();
+	char* outbuf = buff;
 
 	size_t err = iconv(conv, (char**)&inbuf, &inbytesleft, &outbuf, &outbytesleft);
 
@@ -49,41 +51,45 @@ void cp866::init(const char* str) {
 		switch ( errno ) {
 			case E2BIG:
 				throw std::runtime_error("There is not sufficient room at out buffer.");
-				break;
 			case EILSEQ:
 				throw std::runtime_error("An invalid multibyte sequence has been encountered in the input.");
-				break;
 			case EINVAL:
 				throw std::runtime_error("An incomplete multibyte sequence has been encountered in the input.");
-				break;
 			default:
 				throw std::runtime_error("Unknown iconv() error.");
 		}
 	}
 
+	len = strlen(buff);
+
+	data = std::make_unique<char[]>(len);
+	std::copy(buff, buff + len, data.get());
+
+	delete[] buff;
+
 	iconv_close(conv);
-
-	len = strlen(buff.get());
-
-	data = new char[len];
-	if ( memcpy(data, buff.get(), len) != data ) {
-		throw std::runtime_error("memcpy error.");
-	}
 }
 
-cp866::cp866() {
-	data = nullptr;
-	len = 0;
+cp866::cp866(std::string codeset) : cp866(codeset.c_str()) {};
+
+cp866::cp866(const char* codeset) {
+	setcode(codeset);
 }
 
-cp866::cp866(std::string str) : cp866(str.c_str()) {};
+cp866::cp866(std::string str, std::string codeset) : cp866(str.c_str(), codeset.c_str()) {};
 
-cp866::cp866(const char* str) {
+cp866::cp866(const char* str, const char* codeset) : cp866(codeset) {
 	init(str);
 }
 
-cp866::~cp866() {
-	delete[] data;
+void cp866::setcode(std::string codeset) {
+	setcode(codeset.c_str());
+}
+void cp866::setcode(const char* codeset) {
+	size_t code_len = strlen(codeset);
+
+	fromcode = std::make_unique<char[]>(code_len);
+	std::copy(codeset, codeset + code_len, fromcode.get());
 }
 
 size_t cp866::length(void) {
@@ -91,7 +97,7 @@ size_t cp866::length(void) {
 }
 
 char* cp866::get(void) {
-	return data;
+	return data.get();
 }
 
 void cp866::replace(std::string str) {
@@ -99,8 +105,12 @@ void cp866::replace(std::string str) {
 }
 
 void cp866::replace(const char* str) {
+	if ( fromcode == nullptr ) {
+		throw std::runtime_error("Calling replace() without calling constructor first.");
+	}
+
 	if ( data != nullptr ) {
-		delete[] data;
+		data.reset();
 		len = 0;
 	}
 
@@ -143,9 +153,9 @@ char& cp866::iterator::operator*() {
 }
 
 cp866::iterator cp866::begin() {
-	return iterator(data);
+	return iterator(data.get());
 }
 
 cp866::iterator cp866::end() {
-	return iterator(data + len);
+	return iterator(data.get() + len);
 }
